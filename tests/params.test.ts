@@ -17,7 +17,7 @@ describe('params', () => {
   test('normalizeBox snaps and clamps', () => {
     const p = normalizeBox({ widthUnits: 2.3, depthUnits: 9, heightUnits: 0.6, label: { enabled: true, width: 100, lip: true } })
     expect([p.widthUnits, p.depthUnits, p.heightUnits, p.label.width]).toEqual([2, 6, 0.5, 42.6])
-    expect(normalizeBox({ advanced: { ...A, wall: 0 } }).advanced.wall).toBe(0.6)
+    expect(normalizeBox({ advanced: { ...A, clearance: 0 } }).advanced.clearance).toBe(0.2)
     expect(normalizeBox({ heightUnits: 1.13 }).heightUnits).toBe(1.25)
   })
 
@@ -41,4 +41,15 @@ describe('params', () => {
     expect(DEFAULT_BOX).toMatchObject({ widthUnits: 1, depthUnits: 1, heightUnits: 1, label: { enabled: true, width: 27, lip: true } })
     expect(A).toEqual({ pitch: 45, clearance: 0.4, wall: 1, floor: 1, footHeight: 3.5, insertion: 2, unitHeight: 33 })
   })
+})
+
+test('label slider step reaches the maximum exactly', async () => {
+  const { LABEL_STEP, LIMITS, maxLabelWidth, normalizeBox } = await import('../src/geometry/params')
+  for (const clearance of [0.2, 0.25, 0.4, 0.33, 1]) {
+    for (const pitch of [30, 37, 45]) {
+    const max = maxLabelWidth(normalizeBox({ advanced: { ...A, clearance, pitch } }))
+    const steps = (max - LIMITS.labelWidth[0]) / LABEL_STEP
+    expect(Math.abs(steps - Math.round(steps)), `${pitch} ${clearance}`).toBeLessThan(1e-9)
+    }
+  }
 })

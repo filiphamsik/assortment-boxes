@@ -1,8 +1,7 @@
 import './style.css'
 import wasmUrl from 'manifold-3d/manifold.wasm?url'
 import type { Manifold } from 'manifold-3d'
-import { buildBox } from './geometry/box'
-import { buildGrid } from './geometry/grid'
+import { buildSolid } from './geometry/build'
 import { fileName } from './geometry/filename'
 import type { Params } from './geometry/params'
 import { toBinaryStl } from './geometry/stl'
@@ -33,12 +32,13 @@ function schedule() {
 }
 
 async function rebuild() {
-  const m = await getManifold(wasmUrl)
   const p = active()
+  solid?.manifold.delete()
+  solid = undefined
   try {
+    const m = await getManifold(wasmUrl)
     const t = performance.now()
-    const manifold = p.kind === 'box' ? buildBox(m, p) : buildGrid(m, p)
-    solid?.manifold.delete()
+    const manifold = buildSolid(m, p)
     solid = { params: p, manifold }
     preview.show(toBufferGeometry(manifold.getMesh()), p)
     form.setStatus(`Generated in ${Math.round(performance.now() - t)} ms`)

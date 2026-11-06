@@ -1,5 +1,5 @@
 import {
-  boxHeight, DEFAULT_ADVANCED, LIMITS, maxLabelWidth, normalizeBox, normalizeGrid, type Advanced,
+  ADVANCED_RANGES, boxHeight, DEFAULT_ADVANCED, LABEL_STEP, LIMITS, maxLabelWidth, normalizeBox, normalizeGrid, type Advanced,
 } from '../geometry/params'
 import type { AppState } from './storage'
 
@@ -9,14 +9,10 @@ export interface FormHandle {
   setStatus(text: string): void
 }
 
-const ADVANCED_FIELDS: Array<[keyof Advanced, string]> = [
+const ADVANCED_FIELDS: Array<[keyof typeof ADVANCED_RANGES, string]> = [
   ['pitch', 'Grid pitch (mm)'],
   ['clearance', 'Clearance (mm)'],
-  ['wall', 'Wall (mm)'],
   ['floor', 'Floor (mm)'],
-  ['footHeight', 'Foot height (mm)'],
-  ['insertion', 'Stack insertion (mm)'],
-  ['unitHeight', 'Height unit (mm)'],
 ]
 
 export function mountForm(
@@ -39,7 +35,7 @@ export function mountForm(
         <p class="hint">Width runs along the label wall.</p>
         <label>Height <small>(units)</small><input name="box.heightUnits" type="number" min="${LIMITS.height[0]}" max="${LIMITS.height[1]}" step="${LIMITS.heightStep}"><output data-out="height"></output></label>
         <label class="check"><input name="box.label.enabled" type="checkbox"> Label wedge</label>
-        <label data-label>Label width <output data-out="labelWidth"></output><input name="box.label.width" type="range" min="${LIMITS.labelWidth[0]}" step="0.5"></label>
+        <label data-label>Label width <output data-out="labelWidth"></output><input name="box.label.width" type="range" min="${LIMITS.labelWidth[0]}" step="${LABEL_STEP}"></label>
         <label class="check" data-label><input name="box.label.lip" type="checkbox"> Raised lip</label>
       </fieldset>
       <fieldset data-for="grid">
@@ -48,7 +44,7 @@ export function mountForm(
       </fieldset>
       <details>
         <summary>Advanced</summary>
-        ${ADVANCED_FIELDS.map(([k, t]) => `<label>${t}<input name="adv.${k}" type="number" step="0.1"></label>`).join('')}
+        ${ADVANCED_FIELDS.map(([k, t]) => `<label>${t}<input name="adv.${k}" type="number" min="${ADVANCED_RANGES[k][0]}" max="${ADVANCED_RANGES[k][1]}" step="0.05"></label>`).join('')}
         <button type="button" data-reset>Reset to defaults</button>
       </details>
     </form>
@@ -86,7 +82,7 @@ export function mountForm(
 
   function readForm(): AppState {
     const n = (name: string) => input(name).valueAsNumber
-    const adv = Object.fromEntries(ADVANCED_FIELDS.map(([k]) => [k, n(`adv.${k}`)])) as unknown as Advanced
+    const adv: Advanced = { ...current().advanced, ...Object.fromEntries(ADVANCED_FIELDS.map(([k]) => [k, n(`adv.${k}`)])) }
     const box = normalizeBox({
       widthUnits: n('box.widthUnits'),
       depthUnits: n('box.depthUnits'),

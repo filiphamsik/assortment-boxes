@@ -138,9 +138,10 @@ The UI must make this obvious (axis labels / a "label at front" marker in the pr
 
 ### Advanced (hidden, defaults from the references)
 
-Pitch 45, clearance 0.4, wall 1.0, floor 1.0, foot height 3.5, insertion 2. Other dimensions
-derive from these when changed (e.g. height step = 35 − insertion…; the builder keeps the
-formulas consistent).
+Exposed: pitch (30–60, default 45), clearance (0.2–1, default 0.4), floor (0.6–2, default 1).
+Wall 1.0, foot height 3.5, insertion 2 and height unit 33 are fixed: the foot profile seats on
+a 1 mm wall at exactly 2 mm insertion, so changing them would break stacking and the grid fit
+(found in the final review).
 
 ## Verification
 

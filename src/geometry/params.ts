@@ -66,25 +66,27 @@ export const LIMITS = {
   labelWidth: [20, 42.6],
 } as const
 
-const ADVANCED_RANGES: Record<keyof Advanced, readonly [number, number]> = {
-  pitch: [20, 100],
-  clearance: [0, 1],
-  wall: [0.6, 3],
-  floor: [0.6, 3],
-  footHeight: [2, 6],
-  insertion: [1, 4],
-  unitHeight: [10, 100],
-}
+/** Advanced fields the geometry honours, with their allowed ranges. */
+export const ADVANCED_RANGES = {
+  pitch: [30, 60],
+  clearance: [0.2, 1],
+  floor: [0.6, 2],
+} as const satisfies Partial<Record<keyof Advanced, readonly [number, number]>>
+
+/** Slider step for the label width; the maximum is always a whole number of steps from the minimum. */
+export const LABEL_STEP = 0.1
 
 /** Outer height of a box `u` units tall. Stacks add up: H(a) + H(b) − insertion = H(a + b). */
 export function boxHeight(u: number, adv: Advanced): number {
   return u * adv.unitHeight + adv.insertion
 }
 
-/** Label wedge is at most one module's inner width. */
+/** Label wedge is at most one module's inner width, snapped down to the slider step. */
 export function maxLabelWidth(p: BoxParams): number {
   const a = p.advanced
-  return Math.min(LIMITS.labelWidth[1], round(a.pitch - a.clearance - 2 * a.wall, 3))
+  const raw = Math.min(LIMITS.labelWidth[1], a.pitch - a.clearance - 2 * a.wall)
+  const min = LIMITS.labelWidth[0]
+  return round(min + Math.floor((raw - min) / LABEL_STEP + 1e-6) * LABEL_STEP, 3)
 }
 
 export function normalizeBox(p: Partial<BoxParams>): BoxParams {
@@ -123,9 +125,11 @@ export function normalizeGrid(p: Partial<GridParams>): GridParams {
 
 function normalizeAdvanced(a: unknown): Advanced {
   const src: Partial<Advanced> = isObject(a) ? a : {}
+  // wall, footHeight, insertion and unitHeight are pinned: the foot profile only seats on a 1 mm
+  // wall at exactly 2 mm insertion, so changing them would break stacking and the grid fit.
   const out = { ...DEFAULT_ADVANCED }
-  for (const key of Object.keys(ADVANCED_RANGES) as (keyof Advanced)[])
-    out[key] = clamp(num(src[key], DEFAULT_ADVANCED[key]), ...ADVANCED_RANGES[key])
+  for (const key of Object.keys(ADVANCED_RANGES) as (keyof typeof ADVANCED_RANGES)[])
+    out[key] = round(clamp(num(src[key], DEFAULT_ADVANCED[key]), ADVANCED_RANGES[key][0], ADVANCED_RANGES[key][1]), 2)
   return out
 }
 

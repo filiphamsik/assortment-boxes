@@ -1,6 +1,6 @@
 import type { Manifold } from 'manifold-3d'
 import { boxFrame } from './box'
-import { maxLabelWidth, type BoxParams } from './params'
+import { LABEL_STEP, maxLabelWidth, type BoxParams } from './params'
 import { prism, roundedRect } from './primitives'
 import type { M } from './wasm'
 
@@ -28,7 +28,8 @@ export function buildLabel(m: M, p: BoxParams): Manifold {
   const innerLen = ix1 - ix0
   const cx = (ix0 + ix1) / 2
   const W = Math.min(p.label.width, maxLabelWidth(p), innerLen)
-  const full = W >= innerLen - 0.05
+  // the slider maximum is snapped to its step, so "at most one step short" means full width
+  const full = W >= innerLen - LABEL_STEP - 1e-6
   const halfW = full ? innerLen / 2 + 0.5 : W / 2
   const Ht = f.H - LABEL_DROP
   const yWall = oy0 + a.wall - FUSE
