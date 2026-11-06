@@ -39,3 +39,17 @@ describe('storage', () => {
     expect(loadParams(fakeStorage('{"mode":"nope"}')).mode).toBe('box')
   })
 })
+
+describe('shared advanced settings', () => {
+  test('setAdvanced applies to box and grid alike', async () => {
+    const { setAdvanced } = await import('../src/ui/storage')
+    const s = setAdvanced(defaults as any, { ...DEFAULT_BOX.advanced, pitch: 42, clearance: 0.6 })
+    expect(s.box.advanced).toEqual(s.grid.advanced)
+    expect([s.grid.advanced.pitch, s.grid.advanced.clearance]).toEqual([42, 0.6])
+  })
+
+  test('loadParams unifies differing stored advanced values (box wins)', () => {
+    const s = loadParams(fakeStorage(JSON.stringify({ box: { advanced: { pitch: 40 } }, grid: { advanced: { pitch: 50 } } })))
+    expect([s.box.advanced.pitch, s.grid.advanced.pitch]).toEqual([40, 40])
+  })
+})

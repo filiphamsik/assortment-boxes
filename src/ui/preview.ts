@@ -1,6 +1,6 @@
 import {
-  AmbientLight, ArrowHelper, BufferGeometry, CanvasTexture, Color, DirectionalLight, GridHelper, Group, Mesh,
-  MeshStandardMaterial, PerspectiveCamera, Scene, Sprite, SpriteMaterial, Vector3, WebGLRenderer,
+  AmbientLight, BufferGeometry, Color, DirectionalLight, GridHelper, Group, Mesh,
+  MeshStandardMaterial, PerspectiveCamera, Scene, Vector3, WebGLRenderer,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type { Params } from '../geometry/params'
@@ -63,21 +63,6 @@ export function createPreview(host: HTMLElement): Preview {
   }
   loop()
 
-  function label(text: string): Sprite {
-    const c = document.createElement('canvas')
-    c.width = 256
-    c.height = 64
-    const ctx = c.getContext('2d')!
-    ctx.font = '600 30px system-ui, sans-serif'
-    ctx.fillStyle = dark() ? '#ececea' : '#1d1d1b'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(text, 128, 32)
-    const s = new Sprite(new SpriteMaterial({ map: new CanvasTexture(c), depthTest: false }))
-    s.scale.set(32, 8, 1)
-    return s
-  }
-
   function rebuildExtras(p: Params, W: number, D: number) {
     for (const o of [...extras.children]) {
       extras.remove(o)
@@ -93,13 +78,6 @@ export function createPreview(host: HTMLElement): Preview {
     const snap = (c: number) => Math.round((c - (n * G) / 2) / G) * G + (n * G) / 2
     grid.position.set(snap(W / 2), snap(D / 2), -0.05)
     extras.add(grid)
-    if (p.kind === 'box') {
-      const arrow = new ArrowHelper(new Vector3(0, 1, 0), new Vector3(W / 2, -22, 0.5), 16, 0xe0802f, 5, 4)
-      extras.add(arrow)
-      const text = label('Label side')
-      text.position.set(W / 2, -30, 0.5)
-      extras.add(text)
-    }
   }
 
   return {

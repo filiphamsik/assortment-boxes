@@ -1,4 +1,4 @@
-import { normalizeBox, normalizeGrid, type BoxParams, type GridParams } from '../geometry/params'
+import { normalizeBox, normalizeGrid, type Advanced, type BoxParams, type GridParams } from '../geometry/params'
 
 export interface AppState {
   box: BoxParams
@@ -26,11 +26,18 @@ export function loadParams(storage: Storage | undefined = defaultStorage()): App
     raw = {}
   }
   if (typeof raw !== 'object' || raw === null) raw = {}
-  return {
+  const state: AppState = {
     box: normalizeBox(raw.box),
     grid: normalizeGrid(raw.grid),
     mode: raw.mode === 'grid' ? 'grid' : 'box',
   }
+  return setAdvanced(state, state.box.advanced)
+}
+
+/** Advanced settings are shared: boxes and grid must use the same pitch and clearance. */
+export function setAdvanced(state: AppState, advanced: Advanced): AppState {
+  const box = normalizeBox({ ...state.box, advanced })
+  return { ...state, box, grid: normalizeGrid({ ...state.grid, advanced: box.advanced }) }
 }
 
 export function saveParams(state: AppState, storage: Storage | undefined = defaultStorage()): void {

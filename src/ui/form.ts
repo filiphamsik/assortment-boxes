@@ -1,7 +1,7 @@
 import {
   ADVANCED_RANGES, boxHeight, DEFAULT_ADVANCED, LABEL_STEP, LIMITS, maxLabelWidth, normalizeBox, normalizeGrid, type Advanced,
 } from '../geometry/params'
-import type { AppState } from './storage'
+import { setAdvanced, type AppState } from './storage'
 
 export interface FormHandle {
   /** Re-render all fields from the given state (e.g. after normalisation). */
@@ -23,11 +23,13 @@ export function mountForm(
 ): FormHandle {
   let state = initial
   root.innerHTML = `
-    <h1>Assortment Box Generator</h1>
-    <div class="seg" role="tablist">
-      <button type="button" data-mode="box">Box</button>
-      <button type="button" data-mode="grid">Grid</button>
-    </div>
+    <header>
+      <h1>Assortment Box Generator</h1>
+      <div class="seg" role="tablist">
+        <button type="button" data-mode="box">Box</button>
+        <button type="button" data-mode="grid">Grid</button>
+      </div>
+    </header>
     <form autocomplete="off" novalidate>
       <fieldset data-for="box">
         <label>Width <small>(modules)</small><input name="box.widthUnits" type="number" min="${LIMITS.boxUnits[0]}" max="${LIMITS.boxUnits[1]}" step="1"></label>
@@ -48,16 +50,33 @@ export function mountForm(
         <button type="button" data-reset>Reset to defaults</button>
       </details>
     </form>
-    <button type="button" class="primary" data-download>Download STL</button>
-    <p class="status" data-status></p>
+    <footer>
+      <button type="button" class="primary" data-download>Download STL</button>
+      <p class="status" data-status></p>
+    </footer>
   `
   const form = root.querySelector('form')!
+  // Big −/+ buttons instead of the tiny native spinners.
+  form.querySelectorAll<HTMLInputElement>('input[type=number]').forEach(el => {
+    const wrap = document.createElement('div')
+    wrap.className = 'stepper'
+    el.replaceWith(wrap)
+    const btn = (text: string, dir: 1 | -1) => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.textContent = text
+      b.setAttribute('aria-label', `${dir > 0 ? 'Increase' : 'Decrease'} ${el.name}`)
+      b.addEventListener('click', () => {
+        if (dir > 0) el.stepUp()
+        else el.stepDown()
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      return b
+    }
+    wrap.append(btn('−', -1), el, btn('+', 1))
+  })
   const input = (name: string) => form.querySelector<HTMLInputElement>(`[name="${name}"]`)!
   const out = (name: string) => root.querySelector<HTMLOutputElement>(`[data-out="${name}"]`)!
-
-  function current() {
-    return state.mode === 'box' ? state.box : state.grid
-  }
 
   function render() {
     const { box, grid, mode } = state
@@ -77,25 +96,21 @@ export function mountForm(
     w.disabled = input('box.label.lip').disabled = !box.label.enabled
     input('grid.widthUnits').value = String(grid.widthUnits)
     input('grid.depthUnits').value = String(grid.depthUnits)
-    for (const [k] of ADVANCED_FIELDS) input(`adv.${k}`).value = String(current().advanced[k])
+    for (const [k] of ADVANCED_FIELDS) input(`adv.${k}`).value = String(box.advanced[k])
   }
 
   function readForm(): AppState {
     const n = (name: string) => input(name).valueAsNumber
-    const adv: Advanced = { ...current().advanced, ...Object.fromEntries(ADVANCED_FIELDS.map(([k]) => [k, n(`adv.${k}`)])) }
+    const adv: Advanced = { ...state.box.advanced, ...Object.fromEntries(ADVANCED_FIELDS.map(([k]) => [k, n(`adv.${k}`)])) }
     const box = normalizeBox({
       widthUnits: n('box.widthUnits'),
       depthUnits: n('box.depthUnits'),
       heightUnits: n('box.heightUnits'),
       label: { enabled: input('box.label.enabled').checked, width: n('box.label.width'), lip: input('box.label.lip').checked },
-      advanced: state.mode === 'box' ? adv : state.box.advanced,
+      advanced: state.box.advanced,
     })
-    const grid = normalizeGrid({
-      widthUnits: n('grid.widthUnits'),
-      depthUnits: n('grid.depthUnits'),
-      advanced: state.mode === 'grid' ? adv : state.grid.advanced,
-    })
-    return { box, grid, mode: state.mode }
+    const grid = normalizeGrid({ widthUnits: n('grid.widthUnits'), depthUnits: n('grid.depthUnits'), advanced: state.grid.advanced })
+    return setAdvanced({ box, grid, mode: state.mode }, adv)
   }
 
   function commit(next: AppState) {
@@ -115,10 +130,7 @@ export function mountForm(
   root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(b =>
     b.addEventListener('click', () => commit({ ...state, mode: b.dataset.mode as AppState['mode'] })))
   root.querySelector('[data-reset]')!.addEventListener('click', () => {
-    const adv = { ...DEFAULT_ADVANCED }
-    commit(state.mode === 'box'
-      ? { ...state, box: normalizeBox({ ...state.box, advanced: adv }) }
-      : { ...state, grid: normalizeGrid({ ...state.grid, advanced: adv }) })
+    commit(setAdvanced(state, { ...DEFAULT_ADVANCED }))
   })
   root.querySelector('[data-download]')!.addEventListener('click', onDownload)
 
