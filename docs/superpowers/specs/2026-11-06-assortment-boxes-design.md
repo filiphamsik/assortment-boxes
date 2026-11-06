@@ -71,7 +71,7 @@ deliberate changes marked "decided by user".
 
 ### Grid pitch and heights
 
-- Pitch `G = 45`. Clearance `c = 0.4` → box outer size `N·G − c` (1×1 = 44.6; 2×1 = 89.2).
+- Pitch `G = 45`. Clearance `c = 0.4` → box outer size `N·G − c` (1×1 = 44.6; 2×1 = 89.6 – the 2×1 reference is 89.2 only because of its 44.6 foot pitch).
 - Height: `H = u · 33 + 2`, where `u` = height in units (u = 1 → 35; u = 0.5 → 18.5).
   2 mm is how deep the upper box sinks into the lower one. That makes stacks add up in 33 mm
   steps.
@@ -96,7 +96,7 @@ deliberate changes marked "decided by user".
   the module boundary: a 2.0 wide wall with a flat top at z = 5.0 and vertical sides from
   z = 3.5, into which the floor chamfers of both modules run. It must not be any taller, or
   the box won't sit on the grid.
-- **Top edge:** flat at z = H, small chamfer on the inner edge (~0.4).
+- **Top edge:** flat at z = H, no inner chamfer (a chamfer would let the upper foot sink deeper than 2 mm and break the stack heights).
 - **Stacking:** the foot of the upper box (41.6 wide at the bottom) drops into the inner opening
   of the lower one (42.6) and rests on the top edge – 2 mm insertion. Nothing inside the box may
   reach into the top 3.5 mm where the foot goes (that's why the wedge is lowered).
