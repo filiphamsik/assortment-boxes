@@ -27,3 +27,9 @@ export function alignMin(a: Manifold): Manifold {
   const { min } = a.boundingBox()
   return a.translate([-min[0], -min[1], -min[2]])
 }
+
+/** Translate so the XY bounding-box centre sits at the origin and z min at 0. */
+export function alignCenter(a: Manifold): Manifold {
+  const { min, max } = a.boundingBox()
+  return a.translate([-(min[0] + max[0]) / 2, -(min[1] + max[1]) / 2, -min[2]])
+}

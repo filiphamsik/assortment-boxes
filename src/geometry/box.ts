@@ -1,6 +1,7 @@
 import type { CrossSection, Manifold } from 'manifold-3d'
 import { boxHeight, type BoxParams } from './params'
 import { loft, prism, roundedRect } from './primitives'
+import { buildLabel } from './label'
 import type { M } from './wasm'
 
 const OUTER_R = 3
@@ -39,7 +40,8 @@ export function boxFrame(p: BoxParams): BoxFrame {
 }
 
 export function buildBox(m: M, p: BoxParams): Manifold {
-  return buildShell(m, p)
+  const shell = buildShell(m, p)
+  return p.label.enabled ? shell.add(buildLabel(m, p)) : shell
 }
 
 /** Box without the label wedge: feet, walls, rounded floor, dividers. */
