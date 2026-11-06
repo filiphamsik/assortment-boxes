@@ -14,6 +14,8 @@ const FRONT = 11
 /** Height of the vertical front face below the label surface. */
 const FACE = 1.6
 const END_R = 1
+/** Inner corner radius of the box cavity. */
+const INNER_R = 2
 const FUSE = 0.01
 
 /**
@@ -45,13 +47,24 @@ export function buildLabel(m: M, p: BoxParams): Manifold {
     .warp(v => { const [y, z, x] = v; v[0] = x; v[1] = y; v[2] = z })
     .translate([cx - halfW, 0, 0])
 
+  const lipTop = p.label.lip ? Ht + LIP_HEIGHT : Ht
+  // Full width: the side walls stop the label, so the lip has no end rims.
+  const lipEnd = full ? 0 : LIP_END
   const lip = p.label.lip
-    ? prism(roundedRect(m, cx - halfW, oy0 - 1, cx + halfW, yFront, END_R), Ht - FUSE, Ht + LIP_HEIGHT)
-      .subtract(prism(roundedRect(m, cx - halfW + LIP_END, oy0 - 2, cx + halfW - LIP_END, yFront - LIP_FRONT, 0.01), Ht - 1, Ht + 1))
+    ? prism(roundedRect(m, cx - halfW, oy0 - 1, cx + halfW, yFront, full ? 0.01 : END_R), Ht - FUSE, lipTop)
+      .subtract(prism(roundedRect(m, cx - halfW + lipEnd, oy0 - 2, cx + halfW - lipEnd, yFront - LIP_FRONT, 0.01), Ht - 1, Ht + 1))
     : undefined
 
-  const planEnds = prism(roundedRect(m, cx - halfW, oy0 - 1, cx + halfW, yFront, full ? 0.01 : END_R), -1, f.H + 1)
+  const parts = [wedge]
+  if (lip) parts.push(lip)
+  if (full) {
+    // Fill the two front corners with a concave fillet so the opening keeps the box's R2 corners.
+    const corners = roundedRect(m, ix0 - 0.5, yFront - FUSE, ix1 + 0.5, yFront + INNER_R, 0.01)
+      .subtract(roundedRect(m, ix0, yFront, ix1, yFront + 4 * INNER_R, INNER_R))
+    parts.push(prism(corners, zFace, lipTop))
+  }
+
+  const planEnds = prism(roundedRect(m, cx - halfW, oy0 - 1, cx + halfW, yFront + INNER_R, full ? 0.01 : END_R), -1, f.H + 1)
   const inside = prism(roundedRect(m, ix0 - 0.5, f.inner[1] - 0.5, ix1 + 0.5, f.inner[3] + 0.5, 2.5), a.footHeight + 0.5, f.H + 1)
-  const body = lip ? m.Manifold.union([wedge, lip]) : wedge
-  return body.intersect(planEnds).intersect(inside)
+  return m.Manifold.union(parts).intersect(planEnds).intersect(inside)
 }
