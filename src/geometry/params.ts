@@ -63,7 +63,8 @@ export const LIMITS = {
   gridUnits: [1, 10],
   height: [0.5, 3],
   heightStep: 0.25,
-  labelWidth: [20, 42.6],
+  /** Minimum label width; the maximum is the label wall's inner length (see maxLabelWidth). */
+  labelWidthMin: 20,
 } as const
 
 /** Advanced fields the geometry honours, with their allowed ranges. */
@@ -81,11 +82,11 @@ export function boxHeight(u: number, adv: Advanced): number {
   return u * adv.unitHeight + adv.insertion
 }
 
-/** Label wedge is at most one module's inner width, snapped down to the slider step. */
+/** Label wedge spans at most the label wall's inner length, snapped down to the slider step. */
 export function maxLabelWidth(p: BoxParams): number {
   const a = p.advanced
-  const raw = Math.min(LIMITS.labelWidth[1], a.pitch - a.clearance - 2 * a.wall)
-  const min = LIMITS.labelWidth[0]
+  const raw = p.widthUnits * a.pitch - a.clearance - 2 * a.wall
+  const min = LIMITS.labelWidthMin
   return round(min + Math.floor((raw - min) / LABEL_STEP + 1e-6) * LABEL_STEP, 3)
 }
 
@@ -108,7 +109,7 @@ export function normalizeBox(p: Partial<BoxParams>): BoxParams {
     },
     advanced: normalizeAdvanced(src.advanced),
   }
-  box.label.width = clamp(round(box.label.width, 1), LIMITS.labelWidth[0], maxLabelWidth(box))
+  box.label.width = clamp(round(box.label.width, 1), LIMITS.labelWidthMin, maxLabelWidth(box))
   return box
 }
 

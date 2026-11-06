@@ -117,9 +117,11 @@ The UI must make this obvious (axis labels / a "label at front" marker in the pr
 - **Front face + underside:** a short vertical front face down ~2.3, then a 45° slope back to
   the wall (printable without supports).
 - **Width (parameter):** outer width of the wedge including the lip (in `2x1_smooth_v2` = 27,
-  flat inside 25). Slider 20 – 42.6, default 27. 42.6 = full inner width of one module (wall to
-  wall on a 1×1). On boxes wider than one module the wedge is always centred and at most 42.6
-  wide. Wedge ends rounded R ≈ 1 (unless it spans the full width).
+  flat inside 25). Slider from 20 up to the label wall's full inner length (`N·45 − 0.4 − 2`,
+  e.g. 42.6 on 1×1, 87.6 on 2×1), step 0.1, default 27; always centred (decided by user: may be
+  wider than one module). A narrower wedge has R1 rounded front corners; at full width the wedge
+  merges into the side walls and the opening in front of it keeps the box's R2 corners (concave
+  fillets), and the lip has no end rims.
 - **Wedge on/off** (parameter).
 - **Same label at every height (decided by user):** the label surface and lip are identical
   for every height – a 0.5 box has the same label size as a 1 box. Only the underside changes:

@@ -85,6 +85,24 @@ describe('label wedge', () => {
   })
 })
 
+describe('narrow label', () => {
+  test('front corners of a narrower wedge are rounded', async () => {
+    const m = await getManifold()
+    for (const [w, width] of [[1, 27], [2, 27], [2, 60]] as const) {
+      const p = box(w, 1, 1, width, false)
+      const Ht = boxHeight(1, A) - 3.4
+      const [ix0, , ix1] = boxFrame(p).inner
+      const cx = (ix0 + ix1) / 2
+      const yFront = boxFrame(p).outline[1] + 11
+      // just inside the sharp corner: empty when the corner is rounded (R1)
+      for (const x of [cx - width / 2 + 0.05, cx + width / 2 - 0.15]) {
+        const probe = m.Manifold.cube([0.1, 0.1, 0.05]).translate([x, yFront - 0.15, Ht - 0.1])
+        expect(buildBox(m, p).intersect(probe).volume(), `${w}x1 w${width} x${x}`).toBeLessThan(1e-6)
+      }
+    }
+  })
+})
+
 describe('full-width label', () => {
   const shoelace = (c: [number, number][]) => c.reduce((s, [x, y], i) => { const [u, v] = c[(i + 1) % c.length]; return s + x * v - u * y }, 0) / 2
   /** Area of the main opening (largest hole) of a horizontal slice. */
@@ -110,6 +128,16 @@ describe('full-width label', () => {
         expect(b.status()).toBe('NoError')
       }
     }
+  })
+
+  test('full width on a 3x1 spans the whole label wall', async () => {
+    const m = await getManifold()
+    const p = box(3, 1, 1, 200, false)
+    expect(p.label.width).toBeCloseTo(132.6)
+    const Ht = boxHeight(1, A) - 3.4
+    const [ix0, , ix1, iy1] = boxFrame(p).inner
+    const yFront = boxFrame(p).outline[1] + 11
+    expect(openingArea(buildBox(m, p), Ht - 0.05)).toBeCloseTo(roundedRect(m, ix0, yFront, ix1, iy1, 2).area(), 0)
   })
 
   test('full-width lip has no end rims along the side walls', async () => {

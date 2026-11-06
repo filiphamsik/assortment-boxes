@@ -64,7 +64,8 @@ export function buildLabel(m: M, p: BoxParams): Manifold {
     parts.push(prism(corners, zFace, lipTop))
   }
 
-  const planEnds = prism(roundedRect(m, cx - halfW, oy0 - 1, cx + halfW, yFront + INNER_R, full ? 0.01 : END_R), -1, f.H + 1)
+  // Full width reaches past yFront for the corner fillets; a narrower wedge ends at yFront with R1 corners.
+  const planEnds = prism(roundedRect(m, cx - halfW, oy0 - 1, cx + halfW, full ? yFront + INNER_R : yFront, full ? 0.01 : END_R), -1, f.H + 1)
   const inside = prism(roundedRect(m, ix0 - 0.5, f.inner[1] - 0.5, ix1 + 0.5, f.inner[3] + 0.5, 2.5), a.footHeight + 0.5, f.H + 1)
   return m.Manifold.union(parts).intersect(planEnds).intersect(inside)
 }

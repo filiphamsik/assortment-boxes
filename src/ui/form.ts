@@ -37,7 +37,7 @@ export function mountForm(
         <p class="hint">Width runs along the label wall.</p>
         <label>Height <small>(units)</small><input name="box.heightUnits" type="number" min="${LIMITS.height[0]}" max="${LIMITS.height[1]}" step="${LIMITS.heightStep}"><output data-out="height"></output></label>
         <label class="check"><input name="box.label.enabled" type="checkbox"> Label wedge</label>
-        <label data-label>Label width <output data-out="labelWidth"></output><input name="box.label.width" type="range" min="${LIMITS.labelWidth[0]}" step="${LABEL_STEP}"></label>
+        <label data-label>Label width <output data-out="labelWidth"></output><input name="box.label.width" type="range" min="${LIMITS.labelWidthMin}" step="${LABEL_STEP}"></label>
         <label class="check" data-label><input name="box.label.lip" type="checkbox"> Raised lip</label>
       </fieldset>
       <fieldset data-for="grid">
