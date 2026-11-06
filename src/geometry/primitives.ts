@@ -13,7 +13,7 @@ export function roundedRect(m: M, x0: number, y0: number, x1: number, y1: number
 }
 
 /** A paper-thin extrusion of `rect` at height z, used as a hull layer. */
-export function slab(m: M, rect: CrossSection, z: number): Manifold {
+export function slab(_m: M, rect: CrossSection, z: number): Manifold {
   return rect.extrude(SLAB).translate([0, 0, z])
 }
 
