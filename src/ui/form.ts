@@ -73,7 +73,7 @@ export function mountForm(
       })
       return b
     }
-    wrap.append(btn('−', -1), el, btn('+', 1))
+    wrap.append(el, btn('−', -1), btn('+', 1))
   })
   const input = (name: string) => form.querySelector<HTMLInputElement>(`[name="${name}"]`)!
   const out = (name: string) => root.querySelector<HTMLOutputElement>(`[data-out="${name}"]`)!
